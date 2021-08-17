@@ -1,53 +1,33 @@
-const colors = require('colors')
-// console.log(colors.red(`Hello world, ${process.argv[2]}`));
-let numBegin = process.argv[2];
-let numEnd = process.argv[3];
+const EventsEmitter = require("events");
+const emitter = new EventsEmitter();
 
-//Задание. Простые числа
-function primeNumber (n){
-  let i=2, j=0;
-  if (n <= 1)
-    return "";
-  else {
-    for (i; i<=n; i++){
-      if (n % i == 0) {
-        j++;
+let timers = [...process.argv].slice(2).map((item) => {
+  let data = item.split("-");
+  return {
+    value: new Date(`${data[3]}-${data[2]}-${data[1]}T${data[0]}:50:00`),
+    active: true,
+  };
+});
+
+const updateTimers = () => {
+  console.clear()
+  timers.forEach((item) => {
+    if (item.active) {
+      let secs = parseInt((item.value.getTime() - new Date().getTime())/1000);
+      let days = parseInt(secs/86400);
+      let hours = parseInt((secs - days*86400) / 3600);
+      let minutes = parseInt((secs - days*86400 - hours*3600) / 60);
+      let seconds = (secs - days*86400 - hours*3600 - minutes*60);
+      if (secs > 0) {
+        console.log(`Для ${item.value.toString()} осталось: ${days} д ${hours} ч ${minutes} м ${seconds} с`);
+      } else {
+        console.log(`Для ${item.value.toString()} осталось: 0 seconds. Таймер завершен`);
+        item.active = false;
       }
     }
-    if (j==1){
-      return n;
-    }
-    return "";
-  }
-}
+  });
+};
 
-const mas = [];
-if (isNaN(numBegin) || isNaN(numEnd)){
-  console.log(colors.red('Введите числа'));
-} else {
-  while (numBegin <= numEnd){
-    if (!primeNumber(numBegin)=="")
-      mas.push(primeNumber(numBegin));
-    numBegin++;
-  }
-}
+emitter.on("cicle", updateTimers);
 
-let x=0;
-if (mas.length < 1){
-  console.log(colors.green('Простых чисел нет'));
-} else {
-  while (x < mas.length){
-    console.log(colors.red(mas[x]));
-    x++
-    if(x >= mas.length){
-      return;
-    };
-    console.log(colors.yellow(mas[x]));
-    x++;
-    if(x >= mas.length){
-      return;
-    };
-    console.log(colors.green(mas[x]));
-    x++;
-  }
-}
+setInterval(() => emitter.emit("cicle"), 1000);
